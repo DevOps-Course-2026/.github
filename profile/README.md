@@ -46,4 +46,4 @@ The portal auto-updates from each repository's `/docs` folder on every push — 
 
 ## 📫 Connect
 
-[LinkedIn](https://linkedin.com/in/) · [GitHub](https://github.com/Orielsh)
+[LinkedIn](https://www.linkedin.com/in/oriels/) · [GitHub](https://github.com/Orielsh)
