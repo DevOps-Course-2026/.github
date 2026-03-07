@@ -6,47 +6,10 @@ on:
       - main
     paths:
       - 'docs/**'
+      - '*.md'
   workflow_dispatch:
 
 jobs:
   sync:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout source repo
-        uses: actions/checkout@v4
-
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.DOCS_HUB_SYNC_APP_ID }}
-          private-key: ${{ secrets.DOCS_HUB_SYNC_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: docs-hub
-
-      - name: Checkout docs-hub
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository_owner }}/docs-hub
-          token: ${{ steps.app-token.outputs.token }}
-          path: docs-hub
-
-      - name: Copy docs
-        run: |
-          repo="${{ github.event.repository.name }}"
-          mkdir -p "docs-hub/docs/${repo}"
-          rsync -av --delete docs/ "docs-hub/docs/${repo}/"
-
-      - name: Commit and push
-        run: |
-          cd docs-hub
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "docs/${{ github.event.repository.name }}/"
-          if git diff --cached --quiet; then
-            echo "No changes to sync."
-          else
-            git commit -m "docs: sync from ${{ github.event.repository.name }}"
-            git push
-          fi
+    uses: DevOps-Course-2026/.github/.github/workflows/reusable-sync-docs.yml@main
+    secrets: inherit

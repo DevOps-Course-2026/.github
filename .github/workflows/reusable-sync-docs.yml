@@ -1,0 +1,98 @@
+name: Sync Docs to docs-hub (Reusable)
+
+# Called by each repo's sync-docs.yml thin caller.
+# Syncs docs/ and root .md files into docs-hub/docs/<repo>/.
+#
+# Known limitation: if a repo is deleted, its docs-hub namespace persists
+# as an orphan. Clean up manually with: git rm -r docs/<repo>/
+
+on:
+  workflow_call:
+    secrets:
+      DOCS_HUB_SYNC_APP_ID:
+        required: true
+      DOCS_HUB_SYNC_APP_PRIVATE_KEY:
+        required: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.DOCS_HUB_SYNC_APP_ID }}
+          private-key: ${{ secrets.DOCS_HUB_SYNC_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: docs-hub
+
+      - name: Checkout docs-hub
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/docs-hub
+          token: ${{ steps.app-token.outputs.token }}
+          path: docs-hub
+
+      - name: Sync content
+        run: |
+          repo="${{ github.event.repository.name }}"
+          dest="docs-hub/docs/${repo}"
+
+          # Wipe and rebuild — no orphans from any source
+          rm -rf "${dest}"
+          mkdir -p "${dest}"
+
+          # 1. Copy docs/ tree (primary portal content)
+          if [[ -d docs/ ]]; then
+            rsync -av docs/ "${dest}/"
+          fi
+
+          # Helper: prepend empty frontmatter if file doesn't already have it
+          prepend_frontmatter() {
+            local src="$1" target="$2"
+            if head -1 "$src" | grep -q '^---'; then
+              cp "$src" "$target"
+            else
+              printf -- '---\n---\n\n' | cat - "$src" > "$target"
+            fi
+          }
+
+          # 2. Copy root README.md as the category landing page (index.md)
+          if [[ -f README.md ]]; then
+            target="${dest}/index.md"
+            if [[ -f "$target" ]]; then
+              echo "ERROR: README.md collides with docs/index.md — remove one." >&2
+              exit 1
+            fi
+            prepend_frontmatter README.md "$target"
+          fi
+
+          # 3. Copy other root .md files (CONTRIBUTING.md, SECURITY.md, etc.)
+          for f in *.md; do
+            [[ "$f" == "README.md" ]] && continue
+            [[ -f "$f" ]] || continue  # guard against no match
+            target="${dest}/${f,,}"     # lowercase filename
+            if [[ -f "$target" ]]; then
+              echo "ERROR: $f collides with docs/${f,,} — remove one." >&2
+              exit 1
+            fi
+            prepend_frontmatter "$f" "$target"
+          done
+
+      - name: Commit and push
+        run: |
+          cd docs-hub
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "docs/${{ github.event.repository.name }}/"
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+          else
+            git commit -m "docs: sync from ${{ github.event.repository.name }}"
+            git push
+          fi
