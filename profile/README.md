@@ -17,18 +17,21 @@ The portal auto-updates from each repository's `/docs` folder on every push — 
 ## 🗂️ Organization Structure
 
 ### 🏛️ Core Platform
+
 | Repository | Description |
 | :--- | :--- |
 | **[docs-hub](...)** | **The Brain:** Centralized Docusaurus portal. |
 | **[devops-template](...)** | **The Blueprint:** Golden image for all new labs (includes sync-logic). |
 
 ### 🧪 Labs & Implementations
+
 | Repository | Focus |
 | :--- | :--- |
 | **[labs-monorepo](...)** | Monorepo for class exercises and modular components. |
 | **[final-project](...)** | End-to-end Microservices deployment. |
 
 ### ☸️ Infrastructure & GitOps
+
 | Repository | Tooling |
 | :--- | :--- |
 | **[gitops-manifests](...)** | Cluster state management (ArgoCD). |
