@@ -7,20 +7,27 @@ Following it ensures every lab and project doc looks and reads consistently.
 
 ## Lab Folder Structure
 
-Each lab lives in its own folder named `lab-N` or `lab N`:
+Each lab has a **stub** at the repo root and **full content** under `docs/`:
 
 ```text
-lab-8/
-  README.md         ← required: the lab document
-  assets/           ← optional: screenshots, diagrams
-  manifests/        ← optional: yaml/config files used in the lab
+course-labs-monorepo/
+├── lab-8/
+│   └── README.md              ← stub: title + link to portal (no images)
+└── docs/
+    └── labs/
+        └── lab-8/
+            ├── index.md       ← required: full lab document (syncs to portal)
+            └── assets/        ← screenshots and diagrams
 ```
+
+The `docs/` tree syncs automatically to the portal on every push to `main`.
+The root `README.md` is GitHub-browsable only — keep it to a title and a portal link.
 
 ---
 
-## README.md Structure
+## Lab Document Structure (`docs/labs/lab-N/index.md`)
 
-Every lab `README.md` must follow this section order:
+Every lab `index.md` must follow this section order:
 
 ```text
 # Lab N — <Title>
@@ -158,7 +165,7 @@ Reserved for:
 
 ## Screenshots
 
-- Store in `assets/` relative to the lab folder
+- Store in `docs/labs/lab-N/assets/` alongside `index.md`
 - Reference with a relative path: `![description](./assets/filename.png)`
 - Always include alt text
 
