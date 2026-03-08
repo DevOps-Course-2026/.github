@@ -3,7 +3,7 @@
 ## Markdown Authoring
 
 Every time you write or edit a `.md` file in this repo, follow the rules below.
-Full reference: [CONTRIBUTING.md](../CONTRIBUTING.md)
+Full reference: [CONTRIBUTING.md](https://github.com/DevOps-Course-2026/.github/blob/main/CONTRIBUTING.md)
 
 ---
 
