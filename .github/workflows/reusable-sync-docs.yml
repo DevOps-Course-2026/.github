@@ -44,6 +44,15 @@ jobs:
           repo="${repo#.}"  # strip leading dot (.github → github) — Docusaurus ignores dot-dirs
           dest="docs-hub/docs/${repo}"
 
+          # Derive a friendly sidebar label from the repo name
+          friendly_label() {
+            local name="$1"
+            name="${name//-/ }"  # hyphens → spaces
+            # Title-case each word
+            echo "$name" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1'
+          }
+          label="$(friendly_label "$repo")"
+
           # Wipe and rebuild — no orphans from any source
           rm -rf "${dest}"
           mkdir -p "${dest}"
@@ -53,13 +62,17 @@ jobs:
             rsync -av docs/ "${dest}/"
           fi
 
-          # Helper: prepend empty frontmatter if file doesn't already have it
+          # Helper: prepend frontmatter if file doesn't already have it
           prepend_frontmatter() {
-            local src="$1" target="$2"
+            local src="$1" target="$2" extra_fm="${3:-}"
             if head -1 "$src" | grep -q '^---'; then
               cp "$src" "$target"
             else
-              printf -- '---\n---\n\n' | cat - "$src" > "$target"
+              if [[ -n "$extra_fm" ]]; then
+                printf -- '---\n%s\n---\n\n' "$extra_fm" | cat - "$src" > "$target"
+              else
+                printf -- '---\n---\n\n' | cat - "$src" > "$target"
+              fi
             fi
           }
 
@@ -70,7 +83,7 @@ jobs:
               echo "ERROR: README.md collides with docs/index.md — remove one." >&2
               exit 1
             fi
-            prepend_frontmatter README.md "$target"
+            prepend_frontmatter README.md "$target" "sidebar_label: ${label}"
           fi
 
           # 3. Copy other root .md files (CONTRIBUTING.md, SECURITY.md, etc.)
@@ -84,6 +97,11 @@ jobs:
             fi
             prepend_frontmatter "$f" "$target"
           done
+
+          # 4. Generate _category_.json if the repo didn't provide one via docs/
+          if [[ ! -f "${dest}/_category_.json" ]]; then
+            printf '{\n  "label": "%s"\n}\n' "$label" > "${dest}/_category_.json"
+          fi
 
       - name: Commit and push
         run: |
