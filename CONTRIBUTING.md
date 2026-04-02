@@ -1,3 +1,7 @@
+---
+sidebar_label: Contributing
+---
+
 # Lab & Project Authoring Guide
 
 This guide defines the structure and style for all documentation across the [DevOps Course 2026](https://github.com/DevOps-Course-2026) organization.
