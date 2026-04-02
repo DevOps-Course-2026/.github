@@ -115,5 +115,6 @@ jobs:
             echo "No changes to sync."
           else
             git commit -m "docs: sync from ${{ github.event.repository.name }}"
+            git pull --rebase origin main
             git push
           fi
